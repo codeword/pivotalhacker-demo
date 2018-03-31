@@ -1,2 +1,2 @@
 logging.level:
-  root: DEBUG
+  root: WARN
