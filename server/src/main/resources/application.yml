@@ -8,11 +8,12 @@ spring:
     url: jdbc:postgresql://${DB_HOST}/${DB_NAME}
     username: ${DB_USER:}
     password: ${DB_PASS:}
-#    driverClassName: org.postgresql.Driver
     tomcat.max-active: ${DB_MAX_ACTIVE:100}
   jpa:
-#    database-platform: org.hibernate.dialect.PostgreSQLDialect
-#    hibernate.ddl-auto: validate
     properties.hibernate:
-#      jdbc.time_zone: UTC
       show_sql: false
+
+#spring.datasource.driverClassName: org.postgresql.Driver
+#spring.jpa.database-platform: org.hibernate.dialect.PostgreSQLDialect
+#spring.jpa.hibernate.ddl-auto: validate
+#spring.jpa.properties.hibernate.jdbc.time_zone: UTC
