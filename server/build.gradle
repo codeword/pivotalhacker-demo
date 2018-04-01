@@ -7,26 +7,35 @@ buildscript {
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("org.flywaydb:flyway-gradle-plugin:5.0.7")
 	}
 }
 
 apply plugin: 'java'
-apply plugin: 'eclipse'
+apply plugin: 'org.flywaydb.flyway'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
-group = 'com.pivotalhacker'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = 1.8
-
-repositories {
-	mavenCentral()
+flyway {
+    url = "jdbc:postgresql://${System.env.DB_HOST ? System.env.DB_HOST : 'localhost'}:${System.env.DB_PORT ? System.env.DB_PORT : 5432}/${System.env.DB_NAME}"
+    if (System.env.DB_USER) user = System.env.DB_USER
+    if (System.env.DB_PASS) password = System.env.DB_PASS
 }
 
+jar {
+	baseName = 'server'
+	version = '0.0.1-SNAPSHOT'
+}
+sourceCompatibility = 1.8
+
+repositories { mavenCentral() }
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
 	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+	compile('org.springframework.boot:spring-boot-starter-data-rest')
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    runtime('org.postgresql:postgresql')
 	runtime('org.springframework.boot:spring-boot-devtools')
 	compileOnly('org.projectlombok:lombok')
 	testCompile('org.springframework.boot:spring-boot-starter-test')

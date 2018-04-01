@@ -1,0 +1,7 @@
+CREATE TABLE posts (
+  id BIGSERIAL not null PRIMARY KEY,
+  title VARCHAR,
+  body VARCHAR,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+)
