@@ -17,12 +17,11 @@
 *.iws
 *.iml
 *.ipr
-/server/out/
+out/
 
-### NetBeans ###
-nbproject/private/
+### Gradle ###
 build/
-nbbuild/
 dist/
-nbdist/
-.nb-gradle/
+
+### js ###
+node_modules/

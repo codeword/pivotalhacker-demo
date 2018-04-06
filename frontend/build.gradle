@@ -1,0 +1,48 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath "com.moowork.gradle:gradle-node-plugin:1.2.0"
+    }
+}
+
+apply plugin: 'base'
+apply plugin: 'com.moowork.node'
+
+node {
+    download = true
+    version = '8.11.1'
+    npmVersion = '5.6.0'
+}
+
+buildDir = 'dist'
+ext {
+    srcDir = 'src/main/js'
+}
+
+task webpack(type: NpmTask) {
+    dependsOn(npmInstall)
+    group('build')
+    description('testing')
+    inputs.files(
+        'build.gradle',
+        'package-lock.json',
+        'webpack.config.js'
+    )
+    inputs.dir(srcDir)
+    outputs.dir(buildDir)
+    args = [
+        'run', 'env', '--',
+        'webpack',
+        '--mode=development',
+        "--output-path=$buildDir/static/js",
+        '--output-filename=bundle.js',
+        "$srcDir/app.js"
+    ]
+
+}
+assemble.dependsOn(webpack)

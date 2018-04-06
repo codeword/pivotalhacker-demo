@@ -40,3 +40,18 @@ dependencies {
 	compileOnly('org.projectlombok:lombok')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
+
+processResources.dependsOn(':frontend:assemble')
+
+sourceSets {
+    main {
+        resources {
+            srcDirs '../frontend/dist'
+        }
+    }
+}
+
+compileJava.group 'build'
+compileTestJava.group 'build'
+processResources.group 'build'
+processTestResources.group 'build'

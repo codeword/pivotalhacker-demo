@@ -1,0 +1,36 @@
+{
+  "name": "frontend",
+  "version": "0.0.1",
+  "description": "Example frontend for a SPReact project",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:codeword/pivotalhacker-demo.git"
+  },
+  "homepage": "https://github.com/codeword/pivotalhacker-demo",
+  "dependencies": {
+    "react": "^16.3.0",
+    "react-dom": "^16.3.0",
+    "rest": "^2.0.0",
+    "webpack": "^4.4.1"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "webpack-cli": "^2.0.13"
+  },
+  "scripts": {
+    "test": "echo \"Warn: no test specified\" && exit 0",
+    "build": "webpack ./src/main/js/app.js dist/test.js"
+  },
+  "keywords": [
+    "spring",
+    "react"
+  ],
+  "author": "Jonathan Barnes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codeword/pivotalhacker-demo/issues"
+  }
+}
