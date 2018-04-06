@@ -40,9 +40,14 @@ task webpack(type: NpmTask) {
         'webpack',
         '--mode=development',
         "--output-path=$buildDir/static/js",
-        '--output-filename=bundle.js',
-        "$srcDir/app.js"
+        '--output-filename=bundle.js'
     ]
+
+    if (project.hasProperty("watch")) {
+        args << "--watch"
+    }
+
+    args << "$srcDir/app.js"
 
 }
 assemble.dependsOn(webpack)

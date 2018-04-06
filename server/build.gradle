@@ -37,6 +37,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-data-jpa')
     runtime('org.postgresql:postgresql')
 	runtime('org.springframework.boot:spring-boot-devtools')
+    compile(project(':frontend'))
 	compileOnly('org.projectlombok:lombok')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
