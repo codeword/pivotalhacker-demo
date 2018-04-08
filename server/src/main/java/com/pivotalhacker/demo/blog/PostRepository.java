@@ -1,6 +1,6 @@
 package com.pivotalhacker.demo.blog;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface PostRepository extends CrudRepository<Post, Long>{
+public interface PostRepository extends PagingAndSortingRepository<Post, Long> {
 }
