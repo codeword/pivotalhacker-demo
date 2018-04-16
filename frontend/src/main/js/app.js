@@ -1,146 +1,138 @@
 'use strict';
 
 const React = require('react');
-const ReactDOM = require('react-dom')
+const ReactDOM = require('react-dom');
 const client = require('./client');
-
-const follow = require('./follow'); // function to hop multiple links by "rel"
-
+const follow = require('./follow');
 const root = '/api';
 
 class App extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {employees: [], attributes: [], pageSize: 2, links: {}};
+    this.state = {posts: [], attributes: [], pageSize: 2, links: {}};
     this.updatePageSize = this.updatePageSize.bind(this);
     this.onCreate = this.onCreate.bind(this);
     this.onDelete = this.onDelete.bind(this);
     this.onNavigate = this.onNavigate.bind(this);
   }
 
-  // tag::follow-2[]
   loadFromServer(pageSize) {
-    follow(client, root, [
-      {rel: 'employees', params: {size: pageSize}}]
-    ).then(employeeCollection => {
+    const followRet = follow(client, root, [
+      {rel: 'posts', params: {size: pageSize}}
+    ]);
+
+    console.log("followRet: ", followRet);
+    const then1Ret = followRet.then(results => {
       return client({
         method: 'GET',
-        path: employeeCollection.entity._links.profile.href,
+        path: results.entity._links.profile.href,
         headers: {'Accept': 'application/schema+json'}
       }).then(schema => {
         this.schema = schema.entity;
-        return employeeCollection;
+        return results;
       });
-    }).done(employeeCollection => {
+    });
+    console.log("then1Ret: ", then1Ret);
+    const doneRet = then1Ret.then(results => {
       this.setState({
-        employees: employeeCollection.entity._embedded.employees,
+        posts: results.entity._embedded.posts,
         attributes: Object.keys(this.schema.properties),
         pageSize: pageSize,
-        links: employeeCollection.entity._links});
+        links: results.entity._links});
     });
+    console.log("doneRet:", doneRet);
   }
-  // end::follow-2[]
 
-  // tag::create[]
-  onCreate(newEmployee) {
-    follow(client, root, ['employees']).then(employeeCollection => {
+  onCreate(newPost) {
+    follow(client, root, ['posts']).then(results => {
       return client({
         method: 'POST',
-        path: employeeCollection.entity._links.self.href,
-        entity: newEmployee,
+        path: results.entity._links.self.href,
+        entity: newPost,
         headers: {'Content-Type': 'application/json'}
       })
-    }).then(response => {
+    }).then(results => {
       return follow(client, root, [
-        {rel: 'employees', params: {'size': this.state.pageSize}}]);
-    }).done(response => {
-      if (typeof response.entity._links.last != "undefined") {
-        this.onNavigate(response.entity._links.last.href);
+        {rel: 'posts', params: {'size': this.state.pageSize}}
+      ]);
+    }).done(results => {
+      if (typeof results.entity._links.last != 'undefined') {
+        this.onNavigate(results.entity._links.last.href);
       } else {
-        this.onNavigate(response.entity._links.self.href);
+        this.onNavigate(results.entity._links.self.href);
       }
     });
   }
-  // end::create[]
 
-  // tag::delete[]
-  onDelete(employee) {
-    client({method: 'DELETE', path: employee._links.self.href}).done(response => {
+  onDelete(post) {
+    client({method: 'DELETE', path: post._links.self.href}).done(response => {
       this.loadFromServer(this.state.pageSize);
     });
   }
-  // end::delete[]
 
-  // tag::navigate[]
   onNavigate(navUri) {
-    client({method: 'GET', path: navUri}).done(employeeCollection => {
+    client({method: 'GET', path: navUri}).done(results => {
       this.setState({
-        employees: employeeCollection.entity._embedded.employees,
+        posts: results.entity._embedded.posts,
         attributes: this.state.attributes,
         pageSize: this.state.pageSize,
-        links: employeeCollection.entity._links
+        links: results.entity._links
       });
     });
   }
-  // end::navigate[]
 
-  // tag::update-page-size[]
   updatePageSize(pageSize) {
     if (pageSize !== this.state.pageSize) {
       this.loadFromServer(pageSize);
     }
   }
-  // end::update-page-size[]
 
-  // tag::follow-1[]
   componentDidMount() {
     this.loadFromServer(this.state.pageSize);
   }
-  // end::follow-1[]
 
   render() {
     return (
       <div>
-        <CreateDialog attributes={this.state.attributes} onCreate={this.onCreate}/>
-        <EmployeeList employees={this.state.employees}
-                links={this.state.links}
-                pageSize={this.state.pageSize}
-                onNavigate={this.onNavigate}
-                onDelete={this.onDelete}
-                updatePageSize={this.updatePageSize}/>
+        <CreatePost attributes={this.state.attributes} onCreate={this.onCreate}/>
+        <Posts
+          posts={this.state.posts}
+          links={this.state.links}
+          pageSize={this.state.pageSize}
+          onNavigate={this.onNavigate}
+          onDelete={this.onDelete}
+          updatePageSize={this.updatePageSize}
+        />
       </div>
     )
   }
 }
 
-// tag::create-dialog[]
-class CreateDialog extends React.Component {
-
+class CreatePost extends React.Component {
   constructor(props) {
     super(props);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleSubmit(e) {
-    e.preventDefault();
-    var newEmployee = {};
+  handleSubmit(event) {
+    event.preventDefault();
+    const newPost = {};
     this.props.attributes.forEach(attribute => {
-      newEmployee[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
+      newPost[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
     });
-    this.props.onCreate(newEmployee);
 
-    // clear out the dialog's inputs
+    this.props.onCreate(newPost);
+
     this.props.attributes.forEach(attribute => {
       ReactDOM.findDOMNode(this.refs[attribute]).value = '';
     });
 
-    // Navigate away from the dialog to hide it.
-    window.location = "#";
+    window.location = '#';
   }
 
   render() {
-    var inputs = this.props.attributes.map(attribute =>
+    const inputs = this.props.attributes.map(attribute =>
       <p key={attribute}>
         <input type="text" placeholder={attribute} ref={attribute} className="field" />
       </p>
@@ -148,13 +140,13 @@ class CreateDialog extends React.Component {
 
     return (
       <div>
-        <a href="#createEmployee">Create</a>
+        <a href="#createPost">Create</a>
 
-        <div id="createEmployee" className="modalDialog">
+        <div id="createPost" className="modalDialog">
           <div>
             <a href="#" title="Close" className="close">X</a>
 
-            <h2>Create new employee</h2>
+            <h2>Create new post</h2>
 
             <form>
               {inputs}
@@ -165,12 +157,9 @@ class CreateDialog extends React.Component {
       </div>
     )
   }
-
 }
-// end::create-dialog[]
 
-class EmployeeList extends React.Component {
-
+class Posts extends React.Component{
   constructor(props) {
     super(props);
     this.handleNavFirst = this.handleNavFirst.bind(this);
@@ -180,48 +169,42 @@ class EmployeeList extends React.Component {
     this.handleInput = this.handleInput.bind(this);
   }
 
-  // tag::handle-page-size-updates[]
-  handleInput(e) {
-    e.preventDefault();
+  handleInput(event) {
+    event.preventDefault();
     var pageSize = ReactDOM.findDOMNode(this.refs.pageSize).value;
     if (/^[0-9]+$/.test(pageSize)) {
       this.props.updatePageSize(pageSize);
     } else {
-      ReactDOM.findDOMNode(this.refs.pageSize).value =
-        pageSize.substring(0, pageSize.length - 1);
+      ReactDOM.findDOMNode(this.refs.pageSize).value = pageSize.substring(0, pageSize.length - 1);
     }
   }
-  // end::handle-page-size-updates[]
 
-  // tag::handle-nav[]
-  handleNavFirst(e){
-    e.preventDefault();
+  handleNavFirst(event) {
+    event.preventDefault();
     this.props.onNavigate(this.props.links.first.href);
   }
 
-  handleNavPrev(e) {
-    e.preventDefault();
+  handleNavPrev(event) {
+    event.preventDefault();
     this.props.onNavigate(this.props.links.prev.href);
   }
 
-  handleNavNext(e) {
-    e.preventDefault();
+  handleNavNext(event) {
+    event.preventDefault();
     this.props.onNavigate(this.props.links.next.href);
   }
 
-  handleNavLast(e) {
-    e.preventDefault();
+  handleNavLast(event) {
+    event.preventDefault();
     this.props.onNavigate(this.props.links.last.href);
   }
-  // end::handle-nav[]
 
-  // tag::employee-list-render[]
   render() {
-    var employees = this.props.employees.map(employee =>
-      <Employee key={employee._links.self.href} employee={employee} onDelete={this.props.onDelete}/>
+    const posts = this.props.posts.map(post =>
+      <Post key={post._links.self.href} post={post} onDelete={this.props.onDelete}/>
     );
 
-    var navLinks = [];
+    const navLinks = [];
     if ("first" in this.props.links) {
       navLinks.push(<button key="first" onClick={this.handleNavFirst}>&lt;&lt;</button>);
     }
@@ -241,12 +224,11 @@ class EmployeeList extends React.Component {
         <table>
           <tbody>
             <tr>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Description</th>
+              <th>Title</th>
+              <th>Body</th>
               <th></th>
             </tr>
-            {employees}
+            {posts}
           </tbody>
         </table>
         <div>
@@ -255,37 +237,28 @@ class EmployeeList extends React.Component {
       </div>
     )
   }
-  // end::employee-list-render[]
 }
 
-// tag::employee[]
-class Employee extends React.Component {
-
+class Post extends React.Component{
   constructor(props) {
+    console.log("Post - props:", props)
     super(props);
     this.handleDelete = this.handleDelete.bind(this);
   }
 
   handleDelete() {
-    this.props.onDelete(this.props.employee);
+    this.props.onDelete(this.props.post)
   }
 
   render() {
     return (
       <tr>
-        <td>{this.props.employee.firstName}</td>
-        <td>{this.props.employee.lastName}</td>
-        <td>{this.props.employee.description}</td>
-        <td>
-          <button onClick={this.handleDelete}>Delete</button>
-        </td>
+        <td>{this.props.post.title}</td>
+        <td>{this.props.post.body}</td>
+        <td><button onClick={this.handleDelete}>Delete</button></td>
       </tr>
     )
   }
 }
-// end::employee[]
 
-ReactDOM.render(
-  <App />,
-  document.getElementById('react')
-)
+ReactDOM.render( <App />, document.getElementById('react') )
